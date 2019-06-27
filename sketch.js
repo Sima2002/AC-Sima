@@ -1,20 +1,21 @@
+//var font;
+//var points = [];
 var arr = [];
 
 var zoomLevel = 1000
 var smoothMicLevel = 0;
 var n = 0;
-var song;
-var button;
-var amplitude;
 var c = 55;
 var size
-var an = 169.5; //179.5 sirun a
+var an = 169.5;
 var zoom = 1000;
+
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   background(0);
   colorMode(HSB);
+  angleMode(DEGREES);
   slider = createSlider(0, 1, 0.5, 0.01);
   button = createButton("Listen");
   button.mousePressed(toggleListen);
@@ -22,11 +23,10 @@ function setup() {
   mic.start();
 
   for (let n = 0; n < 4000; n++) {
-
     var a = n * an;
 
     var r = c * sqrt(n) * n / zoom
-    var col = a % 256;
+    var col = a % 256;    // n* sin(n)*2/200;
     size = cos(n) * 1.5 + 2.5;
     var x = r * sin(a) + width / 2;
     var y = r * cos(a) + height / 2;
@@ -34,36 +34,22 @@ function setup() {
     arr.push(new Character(x, y, col, size));
 
   }
-  // while (n < 4000) {  
-  //   var a = n * an;
-
-  //   var r = c * sqrt(n) * n / zoom
-  //   var col = a % 256;    // n* sin(n)*2/200;
-  //   size = cos(n) * 1.5 + 2.5;
-  //   var x = r * sin(a) + width / 2;
-  //   var y = r * cos(a) + height / 2;
-
-  //   arr.push(new Character(x, y, col, size));
-  //   n++;
-  // }
-
 }
 
 function draw() {
+  background(0);
   micLevel = mic.getLevel();
   smoothMicLevel = lerp(smoothMicLevel, micLevel, 0.2);
 
-  if (smoothMicLevel > .01) {
-    zoom += 100
+  if (smoothMicLevel > 0.01) {
+    zoom += random(50, 90);
     drawZoom();
 
-  } else if (smoothMicLevel < 30000) {
-    zoom -= 100
+  } else if (smoothMicLevel < 20000) {
+    zoom -= random(50, 90);
     drawZoom();
   }
 
-
-  background(0);
   for (var i = 0; i < arr.length; i++) {
     var v = arr[i];
     v.behaviors();
@@ -73,47 +59,35 @@ function draw() {
 
   // if (mouseIsPressed) {
   //   for (var i = 0; i < arr.length; i++) {
-  //     arr[i].pos = createVector(random(width) * 0.1, random(height) * 0.1)
+  //     var v = arr[i];
+  //     v.pos = createVector(random(width) * 0.1, random(height) * 0.1)
   //   }
   // }
 
 
   if (keyIsPressed) {
-    // if (key == '+') zoom -= 100;
-    // else if (key == '-') zoom += 100;
-    if (key == 'r') zoom *= -1;
-    // else if (key == 'o') zoom *= -8;
+    if (key == '-') zoom -= 150;
+    else if (key == '+') zoom += 100;
+    else if (key == 'r') zoom *= -1;
     else if (key == 'o') zoom *= 20;
     // console.log(zoom)
-
-    // drawZoom();
   }
 
 }
-function drawZoom() {
-  an = 169.5;
 
-  for (var i = 0; i < arr.length; i++) {
 
-    an -= 0.001;
-    var a = i * an;
-    var r = c * sqrt(i) * i / zoom;
-    var x = r * sin(a) + width / 2;
-    var y = r * cos(a) + height / 2;
-
-    arr[i].target = createVector(x, y);
-  }
-}
-
-function Character(x, y, col, h) {
+function Character(x, y, col, z) {
   this.pos = createVector(random(width) * 1, random(height) * 1);
   this.acc = createVector();
   this.vel = createVector();
   this.target = createVector(x, y)
   this.maxspeed = 13;
-  this.maxforce = 15;
+  this.maxforce = 20.5;
+  // this.r= random(20,255);
+  //  this.g= random(20,255);
+  //   this.b= random(20,255);
   this.col = col;
-  this.h = h;
+  this.z = z;
 }
 
 Character.prototype.behaviors = function () {
@@ -132,7 +106,7 @@ Character.prototype.flee = function (target) {
   var desired = p5.Vector.sub(target, this.pos);
   var d = desired.mag();
 
-  if (d < 80) {
+  if (d < 60) {
     desired.setMag(this.maxspeed);
     desired.mult(-1);
     var steer = p5.Vector.sub(desired, this.vel)
@@ -146,9 +120,9 @@ Character.prototype.flee = function (target) {
 
 Character.prototype.arrive = function (target) {
   var desired = p5.Vector.sub(target, this.pos);
-  var d = desired.mag();
+  var d = desired.mag(); //dist(this.pos.x,this.pos.y,target.x,target.y)
   var speed = this.maxspeed;
-  if (d < 80) {
+  if (d < 60) {
     speed = map(d, 0, 100, 0.2, this.maxspeed)
   }
   desired.setMag(speed);
@@ -173,18 +147,8 @@ Character.prototype.show = function () {
   fill(this.col, 255, 255);
   //strokeWeight(3)
   noStroke();
-  ellipse(this.pos.x, this.pos.y, this.h + 3, this.h + 3)
+  ellipse(this.pos.x, this.pos.y, this.z + 2, this.z + 2)
 }
-
-// function togglePlay() {
-//   if (!song.isPlaying()) {
-//     song.loop();
-//     button.html("Pause");
-//   } else {
-//     song.stop();
-//     button.html("Play");
-//   }
-// }
 function toggleListen() {
   if (getAudioContext().state !== 'running') {
     getAudioContext().resume();
@@ -194,5 +158,22 @@ function toggleListen() {
     text('click Play button to start', width / 2, height / 2);
 
     button.html("Listen");
+  }
+}
+
+function drawZoom() {
+  an = 169.5;
+
+  for (var i = 0; i < arr.length; i++) {
+    var v = arr[i];
+
+    an -= 0.001;
+    var a = i * an;
+    var r = c * sqrt(i) * i / zoom;
+    var x = r * sin(a) + width / 2;
+    var y = r * cos(a) + height / 2;
+
+
+    v.target = createVector(x, y);
   }
 }
