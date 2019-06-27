@@ -1,5 +1,6 @@
 var arr = [];
 
+var zoomLevel = 1000
 var smoothMicLevel = 0;
 var n = 0;
 var song;
@@ -10,23 +11,17 @@ var size
 var an = 169.5; //179.5 sirun a
 var zoom = 1000;
 
-// function preload() {
-//   song = loadSound("audio/zemfira.mp3");
-// }
-
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
   background(0);
   colorMode(HSB);
-  angleMode(DEGREES);
   slider = createSlider(0, 1, 0.5, 0.01);
   button = createButton("Listen");
   button.mousePressed(toggleListen);
   mic = new p5.AudioIn()
   mic.start();
 
-  for (let n = 0; n < 5000; n++) {
+  for (let n = 0; n < 4000; n++) {
 
     var a = n * an;
 
@@ -57,13 +52,17 @@ function setup() {
 function draw() {
   micLevel = mic.getLevel();
   smoothMicLevel = lerp(smoothMicLevel, micLevel, 0.2);
-  zoom += 10000 * smoothMicLevel;
-  console.log(smoothMicLevel)
-  // song.setVolume(slider.value());
 
-  // var vol = amplitude.getLevel();
-  // var diam = map(vol, 0, 0.2, 100, height);
-  //console.log(frameRate);
+  if (smoothMicLevel > .01) {
+    zoom += 100
+    drawZoom();
+
+  } else if (smoothMicLevel < 30000) {
+    zoom -= 100
+    drawZoom();
+  }
+
+
   background(0);
   for (var i = 0; i < arr.length; i++) {
     var v = arr[i];
@@ -72,48 +71,39 @@ function draw() {
     v.show();
   }
 
-  if (mouseIsPressed || (keyIsPressed && key == ' ')) {
-    for (var i = 0; i < arr.length; i++) {
-      arr[i].pos = createVector(random(width) * 0.1, random(height) * 0.1)
-    }
-  }
+  // if (mouseIsPressed) {
+  //   for (var i = 0; i < arr.length; i++) {
+  //     arr[i].pos = createVector(random(width) * 0.1, random(height) * 0.1)
+  //   }
+  // }
 
 
   if (keyIsPressed) {
-
-
-    // if (frameRate >= 1000) {
-    //   for (let i = 0; i < 10; i++) {
-    //     zoom -= 100;
-
-    //   }
-    // }
-    if (key == '+') zoom -= 100;
-    else if (key == '-') zoom += 100;
-    else if (key == 'r') zoom *= -1;
+    // if (key == '+') zoom -= 100;
+    // else if (key == '-') zoom += 100;
+    if (key == 'r') zoom *= -1;
     // else if (key == 'o') zoom *= -8;
     else if (key == 'o') zoom *= 20;
-    console.log(zoom)
+    // console.log(zoom)
 
-
-
-    an = 169.5;
-
-    for (var i = 0; i < arr.length; i++) {
-
-      an -= 0.001;
-      var a = i * an;
-      var r = c * sqrt(i) * i / zoom;
-      var x = r * sin(a) + width / 2;
-      var y = r * cos(a) + height / 2;
-
-
-      arr[i].target = createVector(x, y);
-    }
+    // drawZoom();
   }
 
 }
+function drawZoom() {
+  an = 169.5;
 
+  for (var i = 0; i < arr.length; i++) {
+
+    an -= 0.001;
+    var a = i * an;
+    var r = c * sqrt(i) * i / zoom;
+    var x = r * sin(a) + width / 2;
+    var y = r * cos(a) + height / 2;
+
+    arr[i].target = createVector(x, y);
+  }
+}
 
 function Character(x, y, col, h) {
   this.pos = createVector(random(width) * 1, random(height) * 1);
