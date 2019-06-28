@@ -41,13 +41,15 @@ function draw() {
   micLevel = mic.getLevel();
   smoothMicLevel = lerp(smoothMicLevel, micLevel, 0.2);
 
-  if (smoothMicLevel > 0.01) {
-    zoom += random(50, 90);
+  if (smoothMicLevel > 0.02) {
+    zoom += 300;
     drawZoom();
 
   } else if (smoothMicLevel < 20000) {
-    zoom -= random(50, 90);
+    zoom -= 300;
     drawZoom();
+    console.log(zoom);
+    
   }
 
   for (var i = 0; i < arr.length; i++) {
